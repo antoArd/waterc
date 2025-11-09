@@ -211,7 +211,7 @@ This project is open-source. GPL 3.0
 
 ## Author
 
-Developed by [Your Name/Username] in spare time. Reverse-engineered from AORUS libraries for personal use and community benefit.
+Developed by Antonio Ardolino in spare time. Reverse-engineered from AORUS libraries for personal use and community benefit.
 
 ---
 
