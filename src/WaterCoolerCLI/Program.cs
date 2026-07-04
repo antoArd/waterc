@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using WaterCoolerCLI.Api;
 using WaterCoolerCLI.Common;
 using WaterCoolerCLI.Handlers;
@@ -637,8 +637,7 @@ public class Program
             return;
         }
 
-        //TODO get cpu name
-        CoolerDataApi.SendCpuName(device.HidDriver, "AMD Ryzen 9 7950X3D");
+        CoolerDataApi.SendCpuName(device.HidDriver, SystemInfoHandler.GetCpuName());
 
         using var cts = new CancellationTokenSource();
         var token = cts.Token;
@@ -652,13 +651,20 @@ public class Program
             {
                 try
                 {
+                    // 1. Temperatura (Lógica original intacta)
                     if (CpuTempHandler.GetCpuTemperature(out var temp) is false)
                     {
                         break;
                     }
-
                     coolerData.CpuTemperature = (byte)Math.Clamp(Math.Round(temp.PackageTempC!.Value), 0, 255);
 
+                    // 2. Frequência em MHz (via sysfs enumerando cada core)
+                    coolerData.CpuFrequency = SystemInfoHandler.GetAverageCpuFrequencyMHz();
+
+                    // 3. Potência em Watts (via RAPL energy counter delta)
+                    coolerData.CpuPower = SystemInfoHandler.GetCpuPowerWatts();
+
+                    // 4. Envio do payload para o Aorus
                     if (CoolerDataApi.SendCoolerData(device.HidDriver, coolerData) is false)
                     {
                         break;
@@ -671,11 +677,17 @@ public class Program
                     break;
                 }
             }
-        }, token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+        }, token);
 
         // Service for user input to stop
         while (!cts.IsCancellationRequested)
         {
+            // If the service task has ended (e.g. HID error after sleep/resume), exit
+            if (serviceTask.IsCompleted)
+            {
+                break;
+            }
+
             if (!isArg && Console.KeyAvailable)
             {
                 var key = Console.ReadKey(intercept: true);
@@ -689,8 +701,8 @@ public class Program
             await Task.Delay(SleepDelayMs, token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing); // Small delay to avoid busy-waiting
         }
 
-        // Wait for monitoring task to complete
-        await serviceTask;
+        // Wait for service task to complete
+        await serviceTask.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
         Console.WriteLine(ServiceStoppedMessage);
     }
 
