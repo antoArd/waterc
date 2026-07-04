@@ -651,20 +651,20 @@ public class Program
             {
                 try
                 {
-                    // 1. Temperatura (Lógica original intacta)
+                    // 1. Temperature (original logic unchanged)
                     if (CpuTempHandler.GetCpuTemperature(out var temp) is false)
                     {
                         break;
                     }
                     coolerData.CpuTemperature = (byte)Math.Clamp(Math.Round(temp.PackageTempC!.Value), 0, 255);
 
-                    // 2. Frequência em MHz (via sysfs enumerando cada core)
+                    // 2. Frequency in MHz (via sysfs enumerating each core)
                     coolerData.CpuFrequency = SystemInfoHandler.GetAverageCpuFrequencyMHz();
 
-                    // 3. Potência em Watts (via RAPL energy counter delta)
+                    // 3. Power in Watts (via RAPL energy counter delta)
                     coolerData.CpuPower = SystemInfoHandler.GetCpuPowerWatts();
 
-                    // 4. Envio do payload para o Aorus
+                    // 4. Send payload to Aorus
                     if (CoolerDataApi.SendCoolerData(device.HidDriver, coolerData) is false)
                     {
                         break;
