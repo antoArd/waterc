@@ -658,13 +658,16 @@ public class Program
                     }
                     coolerData.CpuTemperature = (byte)Math.Clamp(Math.Round(temp.PackageTempC!.Value), 0, 255);
 
-                    // 2. Frequency in MHz (via sysfs enumerating each core)
-                    coolerData.CpuFrequency = SystemInfoHandler.GetAverageCpuFrequencyMHz();
+                    // 2. Frequency in MHz (via cpufreq policy0)
+                    coolerData.CpuFrequency = SystemInfoHandler.GetCpuFrequencyMHz();
 
-                    // 3. Power in Watts (via RAPL energy counter delta)
+                    // 3. CPU usage percentage (via /proc/stat)
+                    coolerData.CpuUsage = (byte)SystemInfoHandler.GetCpuUsage();
+
+                    // 4. Power in Watts (via RAPL energy counter delta)
                     coolerData.CpuPower = SystemInfoHandler.GetCpuPowerWatts();
 
-                    // 4. Send payload to Aorus
+                    // 5. Send payload to Aorus
                     if (CoolerDataApi.SendCoolerData(device.HidDriver, coolerData) is false)
                     {
                         break;
