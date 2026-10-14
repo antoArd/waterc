@@ -10,7 +10,13 @@ namespace WaterCoolerCLI.Api
         private const byte SendCpuNameCommandCode = 225;
         private const byte SendCoolerDataCommandCode = 224;
         private static readonly byte[] SendCpuNameCommand = [CommandPrefix, SendCpuNameCommandCode, 0];
-        private static readonly byte[] SendCoolerDataCommand = [CommandPrefix, SendCoolerDataCommandCode, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+        private static readonly byte[] SendCoolerDataCommand =
+        [
+            CommandPrefix,
+            SendCoolerDataCommandCode,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        ];
         private static readonly byte[] Buffer = new byte[256];
 
         public static bool SendCpuName(HidDriver hidDriver, string sCpuName)
@@ -44,18 +50,23 @@ namespace WaterCoolerCLI.Api
         {
             try
             {
-                SendCoolerDataCommand[2] = (byte)coolerData.CpuVendor;
-                SendCoolerDataCommand[3] = (byte)coolerData.CpuTemperature;
-                SendCoolerDataCommand[4] = (byte)coolerData.CpuThreadCount;
-                SendCoolerDataCommand[5] = (byte)(coolerData.CpuFrequency / 1000);
-                SendCoolerDataCommand[6] = (byte)(coolerData.CpuFrequency / 100 % 10);
-                SendCoolerDataCommand[7] = (byte)coolerData.CpuCoreCount;
-                SendCoolerDataCommand[8] = (byte)coolerData.VRAMTemperature;
-                SendCoolerDataCommand[9] = (byte)coolerData.LiqiudTemperature;
-                SendCoolerDataCommand[10] = (byte)coolerData.CpuUsage;
-                SendCoolerDataCommand[11] = (byte)(coolerData.CpuPower % 256);
+                SendCoolerDataCommand[2] = 0;
+                SendCoolerDataCommand[3] = 0;
+                SendCoolerDataCommand[4] = (byte)coolerData.CpuTemperature;
+                SendCoolerDataCommand[5] = 0;
+                // The LCD displays CPU frequency with one decimal place.
+                // Round at the wire-format boundary instead of truncating 2999 MHz to 2.9 GHz.
+                int frequencyTenths = (int)Math.Round(
+                    coolerData.CpuFrequency / 100.0,
+                    MidpointRounding.AwayFromZero);
+                SendCoolerDataCommand[6] = (byte)(frequencyTenths / 10);
+                SendCoolerDataCommand[7] = (byte)(frequencyTenths % 10);
+                SendCoolerDataCommand[8] = 0;
+                SendCoolerDataCommand[9] = 0;
+                SendCoolerDataCommand[10] = 0;
+                SendCoolerDataCommand[11] = (byte)coolerData.CpuUsage;
                 SendCoolerDataCommand[12] = (byte)(coolerData.CpuPower / 256);
-
+                SendCoolerDataCommand[13] = (byte)(coolerData.CpuPower % 256);
                 if (!CoolerApi.Send(hidDriver, SendCoolerDataCommand))
                 {
                     LogUtil.Error("CoolerDataApi", "SendCoolerData fail");
