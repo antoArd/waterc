@@ -35,7 +35,7 @@ The majority of the core logic was reverse-engineered from the proprietary AORUS
 ## Requirements
 
 - **OS:** Linux (tested on latest Fedora and Ubuntu/Debian derivatives; requires HID access).
-- **Runtime:** .NET 9 SDK (for building).
+- **Runtime:** .NET 10 SDK (for building).
 - **Hardware Access:** 
   - Run as root for mode/curve changes (requires HID raw access via `libhidapi` or equivalent).
   - CPU temperature reading requires `lm-sensors` or OpenHardwareMonitor-like access (uses `CpuTempHandler` for AMD/Intel support).
@@ -47,10 +47,10 @@ For CPU temperature reading in service mode, ensure your kernel supports it (e.g
 
 ## Building
 
-This project targets .NET 9 and should be built as a native AOT (Ahead-of-Time), self-contained, and trimmed executable for optimal performance and minimal size on Linux.
+This project targets .NET 10 and should be built as a native AOT (Ahead-of-Time), self-contained, and trimmed executable for optimal performance and minimal size on Linux.
 
 ### Prerequisites
-- Install .NET 9 SDK: [Download from Microsoft](https://dotnet.microsoft.com/download/dotnet/9.0).
+- Install .NET 10 SDK: [Download from Microsoft](https://dotnet.microsoft.com/download/dotnet/10.0).
 - On Linux, ensure build essentials: `sudo apt install build-essential libhidapi-dev` on Ubuntu/Debian, or `sudo dnf install gcc-c++ hidapi-devel` on Fedora (or equivalent for your distro).
 
 ### Build Commands
